@@ -1,39 +1,62 @@
-import { ChunhuiCloud } from './ChunhuiCloud'
+import { Scada } from '@chunhuizk/cloud'
 import axios from 'axios'
 import sse50indexList from './sse50index-list'
 
-let scada = new ChunhuiCloud.Scada()
+import iconv from 'iconv-lite';
+
+
+let scada = new Scada()
 scada.setScadaId("5edd4d9ebaaae50007a5cb69")
 scada.setSecret("secret")
 
-let gatewayData = scada.newGatewayData("SSE-50-Index")
+async function register() {
+    let gatewayData = scada.newGatewayData("SSE-50-Index")
 
-run()
 
-async function run() {
-    for (let stockCode of (sse50indexList.slice(0,5))) {
+    for (let stockCode of (sse50indexList.slice(0, 10))) {
         let dataSource = gatewayData.newDataSourceData(`sh${stockCode}`)
-        const response = await axios.get(`http://hq.sinajs.cn/list=sh${stockCode}`)
-        let value = response.data.split(",")[3]
-        dataSource.setValue(parseFloat(value))
+        const response = await axios.get(`http://hq.sinajs.cn/list=sh${stockCode}`, { responseType: 'arraybuffer' }).then(function (response) {
+            return { data: iconv.decode(response.data, 'gbk') }
+        });
+        let { name, value } = extract(response.data)
+        dataSource.setValue(value)
+        dataSource.setMeta("Name", name)
     }
 
 
-    // scada.register(gatewayData).then(() => {
-    //     scada.send(gatewayData).then((res) => {
-    //         console.log(JSON.stringify(gatewayData.toMetricDatas()))
-    //         console.log(res)
-    //     })
-    // })
+    await scada.register(gatewayData)
+}
 
-    // scada.register(gatewayData).then(() => {
-        scada.send(gatewayData).then((res) => {
-            console.log(JSON.stringify(gatewayData.toMetricDatas()))
-            console.log(res)
-        })
-    // })
+async function report() {
+    let gatewayData = scada.newGatewayData("SSE-50-Index")
+
+    for (let stockCode of (sse50indexList.slice(0, 5))) {
+        let dataSource = gatewayData.newDataSourceData(`sh${stockCode}`)
+        const response = await axios.get(`http://hq.sinajs.cn/list=sh${stockCode}`, { responseType: 'arraybuffer' }).then(function (response) {
+            return { data: iconv.decode(response.data, 'gbk') }
+        });
+
+        let { value } = extract(response.data)
+        dataSource.setValue(value)
+    }
+
+    scada.send(gatewayData).then((res) => {
+        console.log(JSON.stringify(gatewayData.toMetricDatas()))
+    })
+}
+
+function extract(str: string): { name: string, value: number } {
+    let arrayStr = str.split("=\"")[1]
+
+    console.log(arrayStr)
+    return {
+        name: arrayStr.split(",")[0],
+        value: parseFloat(arrayStr.split(",")[3])
+    }
 }
 
 
 
-setInterval(run, 30000); // Time in milliseconds
+register().then(() => {
+    setInterval(report, 30000); // Time in milliseconds
+})
