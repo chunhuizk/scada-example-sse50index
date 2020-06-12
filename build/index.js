@@ -121,5 +121,5 @@ function extract(str) {
     };
 }
 register().then(function () {
-    setInterval(report, 30000); // Time in milliseconds
+    setInterval(report, 3000); // Time in milliseconds
 });

@@ -30,7 +30,7 @@ async function register() {
 async function report() {
     let gatewayData = scada.newGatewayData("SSE-50-Index")
 
-    for (let stockCode of (sse50indexList.slice(0, 5))) {
+    for (let stockCode of (sse50indexList.slice(0, 10))) {
         let dataSource = gatewayData.newDataSourceData(`sh${stockCode}`)
         const response = await axios.get(`http://hq.sinajs.cn/list=sh${stockCode}`, { responseType: 'arraybuffer' }).then(function (response) {
             return { data: iconv.decode(response.data, 'gbk') }
@@ -48,7 +48,6 @@ async function report() {
 function extract(str: string): { name: string, value: number } {
     let arrayStr = str.split("=\"")[1]
 
-    console.log(arrayStr)
     return {
         name: arrayStr.split(",")[0],
         value: parseFloat(arrayStr.split(",")[3])
@@ -58,5 +57,5 @@ function extract(str: string): { name: string, value: number } {
 
 
 register().then(() => {
-    setInterval(report, 30000); // Time in milliseconds
+    setInterval(report, 3000); // Time in milliseconds
 })
