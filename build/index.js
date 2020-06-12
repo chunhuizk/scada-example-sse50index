@@ -39,50 +39,87 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var ChunhuiCloud_1 = require("./ChunhuiCloud");
+var cloud_1 = require("@chunhuizk/cloud");
 var axios_1 = __importDefault(require("axios"));
 var sse50index_list_1 = __importDefault(require("./sse50index-list"));
-var scada = new ChunhuiCloud_1.ChunhuiCloud.Scada();
+var iconv_lite_1 = __importDefault(require("iconv-lite"));
+var scada = new cloud_1.Scada();
 scada.setScadaId("5edd4d9ebaaae50007a5cb69");
 scada.setSecret("secret");
-var gatewayData = scada.newGatewayData("SSE-50-Index");
-run();
-function run() {
+function register() {
     return __awaiter(this, void 0, void 0, function () {
-        var _i, _a, stockCode, dataSource, response, value;
+        var gatewayData, _i, _a, stockCode, dataSource, response, _b, name_1, value;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    gatewayData = scada.newGatewayData("SSE-50-Index");
+                    _i = 0, _a = (sse50index_list_1.default.slice(0, 10));
+                    _c.label = 1;
+                case 1:
+                    if (!(_i < _a.length)) return [3 /*break*/, 4];
+                    stockCode = _a[_i];
+                    dataSource = gatewayData.newDataSourceData("sh" + stockCode);
+                    return [4 /*yield*/, axios_1.default.get("http://hq.sinajs.cn/list=sh" + stockCode, { responseType: 'arraybuffer' }).then(function (response) {
+                            return { data: iconv_lite_1.default.decode(response.data, 'gbk') };
+                        })];
+                case 2:
+                    response = _c.sent();
+                    _b = extract(response.data), name_1 = _b.name, value = _b.value;
+                    dataSource.setValue(value);
+                    dataSource.setMeta("Name", name_1);
+                    _c.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4: return [4 /*yield*/, scada.register(gatewayData)];
+                case 5:
+                    _c.sent();
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function report() {
+    return __awaiter(this, void 0, void 0, function () {
+        var gatewayData, _i, _a, stockCode, dataSource, response, value;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
+                    gatewayData = scada.newGatewayData("SSE-50-Index");
                     _i = 0, _a = (sse50index_list_1.default.slice(0, 5));
                     _b.label = 1;
                 case 1:
                     if (!(_i < _a.length)) return [3 /*break*/, 4];
                     stockCode = _a[_i];
                     dataSource = gatewayData.newDataSourceData("sh" + stockCode);
-                    return [4 /*yield*/, axios_1.default.get("http://hq.sinajs.cn/list=sh" + stockCode)];
+                    return [4 /*yield*/, axios_1.default.get("http://hq.sinajs.cn/list=sh" + stockCode, { responseType: 'arraybuffer' }).then(function (response) {
+                            return { data: iconv_lite_1.default.decode(response.data, 'gbk') };
+                        })];
                 case 2:
                     response = _b.sent();
-                    value = response.data.split(",")[3];
-                    dataSource.setValue(parseFloat(value));
+                    value = extract(response.data).value;
+                    dataSource.setValue(value);
                     _b.label = 3;
                 case 3:
                     _i++;
                     return [3 /*break*/, 1];
                 case 4:
-                    // scada.register(gatewayData).then(() => {
-                    //     scada.send(gatewayData).then((res) => {
-                    //         console.log(JSON.stringify(gatewayData.toMetricDatas()))
-                    //         console.log(res)
-                    //     })
-                    // })
-                    // scada.register(gatewayData).then(() => {
                     scada.send(gatewayData).then(function (res) {
                         console.log(JSON.stringify(gatewayData.toMetricDatas()));
-                        console.log(res);
                     });
                     return [2 /*return*/];
             }
         });
     });
 }
-setInterval(run, 30000); // Time in milliseconds
+function extract(str) {
+    var arrayStr = str.split("=\"")[1];
+    console.log(arrayStr);
+    return {
+        name: arrayStr.split(",")[0],
+        value: parseFloat(arrayStr.split(",")[3])
+    };
+}
+register().then(function () {
+    setInterval(report, 30000); // Time in milliseconds
+});
