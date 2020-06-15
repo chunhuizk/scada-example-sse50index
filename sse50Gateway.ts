@@ -3,6 +3,7 @@ import axios from 'axios'
 import sse50indexList from './sse50index-list'
 
 import iconv from 'iconv-lite';
+import isCNTradingTime from './isCNTradingTime'
 
 let scada = new Scada()
 scada.setScadaId("5edd4d9ebaaae50007a5cb69")
@@ -29,7 +30,7 @@ export async function register() {
 }
 
 export async function report() {
-    if (isTradingTime()) {
+    if (isCNTradingTime()) {
         let gatewayData = scada.newGatewayData(gatewayPhysicalId)
 
         for (let stockCode of (sse50indexList.slice(0, 10))) {
@@ -44,12 +45,9 @@ export async function report() {
     
         console.log(gatewayPhysicalId, "report")
 
-        scada.send(gatewayData).then((res) => {
-            console.log(JSON.stringify(gatewayData.toMetricDatas()))
-        })
+        await scada.send(gatewayData)
     } else {
         console.log(gatewayPhysicalId, "NOT IN TRADING TIME")
-
         return Promise.resolve()
     }
 }
@@ -63,32 +61,3 @@ function extract(str: string): { name: string, value: number } {
     }
 }
 
-function isTradingTime(): boolean {
-    const currentDate = new Date()
-    const day = currentDate.getDay()
-
-    if (day > 5 || day < 1) {
-        // weekend
-        return false
-    }
-
-    const morningTradingStartTime = new Date()
-    morningTradingStartTime.setHours(9, 30, 0)
-    const morningTradingEndTime = new Date()
-    morningTradingStartTime.setHours(11, 30, 0)
-
-    const afternoonTradingStartTime = new Date()
-    morningTradingStartTime.setHours(13, 0, 0)
-    const afternoonTradingEndTime = new Date()
-    morningTradingStartTime.setHours(15, 0, 0)
-
-    if (currentDate.getTime() < morningTradingStartTime.getTime() || currentDate.getTime() > afternoonTradingEndTime.getTime()) {
-        return false
-    }
-
-    if (currentDate.getTime() > morningTradingEndTime.getTime() && currentDate.getTime() < afternoonTradingStartTime.getTime()) {
-        return false
-    }
-
-    return true
-}

@@ -22,8 +22,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var SSE50MOCK = __importStar(require("./sse50Gateway"));
 var RANDOMMOCK = __importStar(require("./randomReadingGateway"));
 SSE50MOCK.register().then(function () {
-    setInterval(SSE50MOCK.report, 3000); // Time in milliseconds
+    setInterval(SSE50MOCK.report, 30000); // Time in milliseconds
 });
 RANDOMMOCK.register().then(function () {
-    setInterval(RANDOMMOCK.report, 1000); // Time in milliseconds
+    setInterval(RANDOMMOCK.report, 5000); // Time in milliseconds
 });
