@@ -33,13 +33,11 @@ export async function report() {
 
     console.log(gatewayPhysicalId, "report")
 
-    scada.send(gatewayData).then((res) => {
-        console.log(JSON.stringify(gatewayData.toMetricDatas()))
-    })
+    await scada.send(gatewayData)
 }
 
 
 function randomReading(errChance: number = 0.05): number {
     var weighted = function () { return Math.pow(Math.random(), errChance); }
-    return Math.floor(weighted() * (100 - 0 + 1)) + 0;
+    return parseFloat((Math.floor(weighted() * (100 - 0 + 1)) + 0).toFixed(2));
 }
