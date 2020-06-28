@@ -1,17 +1,16 @@
 import { ScadaDataReporter } from '@chunhuizk/cloud'
-import axios from 'axios'
 import sse50indexList from './sse50index-list'
 
-import iconv from 'iconv-lite';
 import isCNTradingTime from './isCNTradingTime'
 import getStockQuotes from './getStockQuotes';
+import { debug } from './utils';
 
 let scada = new ScadaDataReporter()
 scada.setScadaId("5edd4d9ebaaae50007a5cb69")
 scada.setSecret("secret")
 
 const gatewayPhysicalId = "SSE-50-Index"
-const stockCodes = sse50indexList.slice(0, 10)
+const stockCodes = sse50indexList
 
 export async function register() {
     let gatewayData = scada.newGatewayData(gatewayPhysicalId)
@@ -40,6 +39,8 @@ export async function report() {
         }
 
         console.log(gatewayPhysicalId, "report")
+
+        debug("Report MetricDataLength: " + gatewayData.toMetricDatas().length)
 
         await scada.send(gatewayData)
     } else {
