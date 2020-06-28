@@ -1,15 +1,16 @@
-import { Scada } from '@chunhuizk/cloud'
+import { ScadaDataReporter } from '@chunhuizk/cloud'
 
-let scada = new Scada()
-scada.setScadaId("5edd4d9ebaaae50007a5cb69")
-scada.setSecret("secret")
+let scadaDataReporter = new ScadaDataReporter()
+scadaDataReporter.setScadaId("5edd4d9ebaaae50007a5cb69")
+scadaDataReporter.setSecret("secret")
+scadaDataReporter.setEndpoint("https://scada.chunhuicloud.com")
 
 const dataSourceIds = ['abc', 'def', 'ghi', 'jkl']
 const gatewayPhysicalId = 'SCADA-EXAMPLE-RANDOM-READING'
 
 
 export async function register() {
-    let gatewayData = scada.newGatewayData(gatewayPhysicalId)
+    let gatewayData = scadaDataReporter.newGatewayData(gatewayPhysicalId)
 
     for (const dataSourceId of dataSourceIds) {
         let dataSource = gatewayData.newDataSourceData(dataSourceId)
@@ -18,11 +19,11 @@ export async function register() {
         dataSource.setValue(randomValue)
     }
 
-    await scada.register(gatewayData)
+    await scadaDataReporter.register(gatewayData)
 }
 
 export async function report() {
-    let gatewayData = scada.newGatewayData(gatewayPhysicalId)
+    let gatewayData = scadaDataReporter.newGatewayData(gatewayPhysicalId)
 
     for (const dataSourceId of dataSourceIds) {
         let dataSource = gatewayData.newDataSourceData(dataSourceId)
@@ -33,7 +34,7 @@ export async function report() {
 
     console.log(gatewayPhysicalId, "report")
 
-    await scada.send(gatewayData)
+    await scadaDataReporter.send(gatewayData)
 }
 
 

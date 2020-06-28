@@ -1,30 +1,29 @@
-import { Scada } from '@chunhuizk/cloud'
+import { ScadaDataReporter } from '@chunhuizk/cloud'
 import axios from 'axios'
 import sse50indexList from './sse50index-list'
 
 import iconv from 'iconv-lite';
 import isCNTradingTime from './isCNTradingTime'
+import getStockQuotes from './getStockQuotes';
 
-let scada = new Scada()
+let scada = new ScadaDataReporter()
 scada.setScadaId("5edd4d9ebaaae50007a5cb69")
 scada.setSecret("secret")
 
 const gatewayPhysicalId = "SSE-50-Index"
+const stockCodes = sse50indexList.slice(0, 10)
 
 export async function register() {
     let gatewayData = scada.newGatewayData(gatewayPhysicalId)
 
+    const stockQuote = await getStockQuotes(stockCodes)
 
-    for (let stockCode of (sse50indexList.slice(0, 10))) {
+    for (let quote of stockQuote) {
+        const { name, value, stockCode } = quote
         let dataSource = gatewayData.newDataSourceData(`sh${stockCode}`)
-        const response = await axios.get(`http://hq.sinajs.cn/list=sh${stockCode}`, { responseType: 'arraybuffer' }).then(function (response) {
-            return { data: iconv.decode(response.data, 'gbk') }
-        });
-        let { name, value } = extract(response.data)
         dataSource.setValue(value)
         dataSource.setMeta("Name", name)
     }
-
 
     await scada.register(gatewayData)
 }
@@ -33,16 +32,13 @@ export async function report() {
     if (isCNTradingTime()) {
         let gatewayData = scada.newGatewayData(gatewayPhysicalId)
 
-        for (let stockCode of (sse50indexList.slice(0, 10))) {
-            let dataSource = gatewayData.newDataSourceData(`sh${stockCode}`)
-            const response = await axios.get(`http://hq.sinajs.cn/list=sh${stockCode}`, { responseType: 'arraybuffer' }).then(function (response) {
-                return { data: iconv.decode(response.data, 'gbk') }
-            });
-    
-            let { value } = extract(response.data)
-            dataSource.setValue(value)
+        const stockQuote = await getStockQuotes(stockCodes)
+
+        for (let quote of stockQuote) {
+            let dataSource = gatewayData.newDataSourceData(`sh${quote.stockCode}`)
+            dataSource.setValue(quote.value)
         }
-    
+
         console.log(gatewayPhysicalId, "report")
 
         await scada.send(gatewayData)
