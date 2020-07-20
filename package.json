@@ -5,6 +5,7 @@
   "main": "build/index.js",
   "scripts": {
     "build": "npx tsc",
+    "debug": "DEBUG=true node ./build/index.js",
     "start": "node ./build/index.js",
     "dist": "sh ./scripts/dist.sh",
     "test": "jest"

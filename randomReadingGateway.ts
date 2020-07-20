@@ -3,11 +3,10 @@ import { ScadaDataReporter } from '@chunhuizk/cloud'
 let scadaDataReporter = new ScadaDataReporter()
 scadaDataReporter.setScadaId("5edd4d9ebaaae50007a5cb69")
 scadaDataReporter.setSecret("secret")
-scadaDataReporter.setEndpoint("https://scada.chunhuicloud.com")
+scadaDataReporter.setEndpoint("https://scada.chunhuizk.com")
 
 const dataSourceIds = ['abc', 'def', 'ghi', 'jkl']
 const gatewayPhysicalId = 'SCADA-EXAMPLE-RANDOM-READING'
-
 
 export async function register() {
     let gatewayData = scadaDataReporter.newGatewayData(gatewayPhysicalId)

@@ -6,9 +6,9 @@ if (process.env.DEBUG) {
         setInterval(SSE50MOCK.report, 3000); // Time in milliseconds
     })
     
-    // RANDOMMOCK.register().then(() => {
-    //     setInterval(RANDOMMOCK.report, 5000); // Time in milliseconds
-    // })
+    RANDOMMOCK.register().then(() => {
+        setInterval(RANDOMMOCK.report, 5000); // Time in milliseconds
+    })
 } else {
     console.log("Production Mode")
     SSE50MOCK.register().then(() => {
