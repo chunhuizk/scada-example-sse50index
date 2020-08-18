@@ -13,11 +13,11 @@ if (process.env.DEBUG) {
     console.log("Production Mode")
     SSE50MOCK.register().then(() => {
         console.log("Start Reporting SSE50MOCK")
-        setInterval(SSE50MOCK.report, 30000); // Time in milliseconds
+        setInterval(SSE50MOCK.report, 60000); // Time in milliseconds， 1mins
     })
     
     RANDOMMOCK.register().then(() => {
         console.log("Start Reporting RANDOMMOCK")
-        setInterval(RANDOMMOCK.report, 5000); // Time in milliseconds
+        setInterval(RANDOMMOCK.report, 60000); // Time in milliseconds， 1mins
     })
 }
