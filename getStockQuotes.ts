@@ -15,14 +15,19 @@ type GetStockQuoteResponse = IStockQuote[]
 
 export default async function getStockQuotes(stockCodes: string[]): Promise<GetStockQuoteResponse> {
     return bluebird.map(stockCodes, async (stockCode) => {
-        const response = await axios.get(`http://hq.sinajs.cn/list=sh${stockCode}`, { responseType: 'arraybuffer' });
-        const decodedData = iconv.decode(response.data, 'gbk')
-        let { name, value } = extract(decodedData);
-        return {
-            name,
-            stockCode,
-            value
-        };
+        try {
+            const response = await axios.get(`http://hq.sinajs.cn/list=sh${stockCode}`, { responseType: 'arraybuffer' });
+            const decodedData = iconv.decode(response.data, 'gbk')
+            let { name, value } = extract(decodedData);
+            return {
+                name,
+                stockCode,
+                value
+            };
+        } catch (error) {
+            console.error(error)
+            throw error
+        }
     }, { concurrency: 10 })
 }
 

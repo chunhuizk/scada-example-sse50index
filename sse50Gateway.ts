@@ -30,31 +30,22 @@ export async function register() {
 export async function report() {
     if (isCNTradingTime()) {
         let gatewayData = scada.newGatewayData(gatewayPhysicalId)
-
+        console.log(gatewayPhysicalId, "::getStockQuotes::start")
         const stockQuote = await getStockQuotes(stockCodes)
+        console.log(gatewayPhysicalId, "::getStockQuotes::done")
 
         for (let quote of stockQuote) {
             let dataSource = gatewayData.newDataSourceData(`sh${quote.stockCode}`)
             dataSource.setValue(quote.value)
         }
 
-        console.log(gatewayPhysicalId, "report")
 
         debug("Report MetricDataLength: " + gatewayData.toMetricDatas().length)
-
+        console.log(gatewayPhysicalId, "::scada.send::start")
         await scada.send(gatewayData)
+        console.log(gatewayPhysicalId, "::scada.send::done")
     } else {
-        console.log(gatewayPhysicalId, "NOT IN TRADING TIME")
+        console.log(gatewayPhysicalId, "::NOT_IN_TRADING_TIME")
         return Promise.resolve()
     }
 }
-
-function extract(str: string): { name: string, value: number } {
-    let arrayStr = str.split("=\"")[1]
-
-    return {
-        name: arrayStr.split(",")[0],
-        value: parseFloat(arrayStr.split(",")[3])
-    }
-}
-
