@@ -1,5 +1,6 @@
 import * as SSE50MOCK from './sse50Gateway'
 import * as RANDOMMOCK from './randomReadingGateway'
+import * as GD_WATER from './granddongshan_water_quality'
 
 if (process.env.DEBUG) {
     // SSE50MOCK.register().then(() => {
@@ -13,6 +14,8 @@ if (process.env.DEBUG) {
             RANDOMMOCK.report()
         }, 5000); // Time in milliseconds
     })
+
+    GD_WATER.test_upload()
 } else {
     console.log("Production Mode")
     // SSE50MOCK.register().then(() => {
